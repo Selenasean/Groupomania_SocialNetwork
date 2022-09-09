@@ -8,25 +8,59 @@ const fs = require("fs"); // file systeme to manipulated files
  * @param {*} next pass the execution to the next
  */
 exports.createPost = (req, res, next) => {
-  const postObject = JSON.parse(req.body.post);
-  delete postObject._id; // delete _id send by the user's request
-  delete postObject._userId; // delete _userId send by the user's request
-  const post = new Post({
-    ...postObject,
-    userId: req.auth.userId, // using userId find in the authorization middleware token
-    imageUrl: `${req.protocol}://${req.get("host")}/images/${
-      req.file.filename
-    }`, // defined complete image's URL
-  });
-
-  post
-    .save()
-    .then(() => {
-      res.status(201).json({ message: "Post enregistré !" });
-    })
-    .catch((error) => {
-      res.status(400).json({ error });
+  if (req.file != null) {
+    let userId = req.body.userId;
+    let firstName = req.body.firstName;
+    let lastName = req.body.lastName;
+    let legend = req.body.legend;
+    let likes = req.body.likes;
+    let usersLiked = req.body.usersLiked;
+    delete userId; // delete _userId send by the user's request
+    const post = new Post({
+      userId: req.auth.userId, // using userId find in the authorization middleware token
+      firstName: firstName,
+      lastName: lastName,
+      imageUrl: `${req.protocol}://${req.get("host")}/images/${
+        req.file.filename
+      }`, // defined complete image's URL
+      legend: legend,
+      likes: likes,
+      usersLiked: usersLiked,
     });
+    post
+      .save()
+      .then(() => {
+        res.status(201).json({ message: "Post enregistré !" });
+      })
+      .catch((error) => {
+        res.status(400).json({ error });
+      });
+  } else {
+    let userId = req.body.userId;
+    let firstName = req.body.firstName;
+    let lastName = req.body.lastName;
+    let legend = req.body.legend;
+    let likes = req.body.likes;
+    let usersLiked = req.body.usersLiked;
+    delete userId; // delete _userId send by the user's request
+    const post = new Post({
+      userId: req.auth.userId, // using userId find in the authorization middleware token
+      firstName: firstName,
+      lastName: lastName,
+      legend: legend,
+      imageUrl: req.file,
+      likes: likes,
+      usersLiked: usersLiked,
+    });
+    post
+      .save()
+      .then(() => {
+        res.status(201).json({ message: "Post enregistré !" });
+      })
+      .catch((error) => {
+        res.status(400).json({ error });
+      });
+  }
 };
 
 /**
@@ -54,34 +88,97 @@ exports.getOnePost = (req, res, next) => {
  * @param {*} next pass the execution to the next
  */
 exports.modifyPost = (req, res, next) => {
+  console.log(req.file);
   const postObject = req.file
     ? // if req.file exist - user tries to import image
       {
-        ...JSON.parse(req.body.post),
+        ...req.body,
         imageUrl: `${req.protocol}://${req.get("host")}/images/${
           req.file.filename
         }`,
       }
-    : // req.fil doesn't exist - user doesn't modify the image
+    : // req.fil doesn't exist - user doesn't modify the image or doesn't import image
       { ...req.body };
-
+  console.log(postObject.imageUrl);
   delete postObject._userId;
+
   Post.findOne({ _id: req.params.id }) // find the _id of the post we want to modify
     .then((post) => {
       // verify if userId = user's Id who wants to modify the product
       if (post.userId != req.auth.userId) {
         res.status(401).json({ message: "Not authorized" });
       } else {
-        // delete the existing post's image
-        const filename = post.imageUrl.split("/images/")[1];
-        fs.unlink(`images/${filename}`, () => {
-          Post.updateOne(
-            { _id: req.params.id },
-            { ...postObject, _id: req.params.id }
-          )
-            .then(() => res.status(200).json({ message: "Post modifié!" }))
-            .catch((error) => res.status(401).json({ error }));
-        });
+        //else post.userId == req.auth.userId : means the user modifying the post is the same user who create the post : authorize
+
+        console.log(postObject.image);
+
+        if (postObject.imageUrl != post.imageUrl) {
+          // if image send by user isn't the same as the image in database
+          console.log("req.body.imageUrl du front != post.imageUrl du back");
+
+          if (!postObject.imageUrl) {
+            // if there is no image file at all -- the image send by the front = ''
+            console.log("ya pas d'image - c'est que le text qui est modifié");
+            Post.updateOne(
+              { _id: req.params.id },
+              { ...postObject, _id: req.params.id }
+            )
+              .then(() => res.status(200).json({ message: "Post modifié!" }))
+              .catch((error) => res.status(401).json({ error }));
+
+            if (postObject.image == "deleteImg") {
+              // if the image send by the front = 'deleteImg'
+              console.log(
+                "l'image est null - supp par l'user - doit être supp"
+              );
+              // delete the path of the previous picture, save in 'images' repo
+              const filename = post.imageUrl.split("/images/")[1];
+              fs.unlink(`images/${filename}`, () => {
+                // update the post, with an empty tag for imageUrl
+                Post.updateOne(
+                  { _id: req.params.id },
+                  { ...postObject, imageUrl: "", _id: req.params.id }
+                )
+                  .then(() =>
+                    res
+                      .status(200)
+                      .json({ message: "Post modifié, image supprimée !" })
+                  )
+                  .catch((error) => res.status(401).json({ error }));
+              });
+            }
+          } else {
+            // there is an image file to update
+            console.log(
+              "ya une image à modifiée - faut supp celle deja existante"
+            );
+
+            if (!post.imageUrl) {
+              //if post.imageUrl = image in database doesn't exist, save the new post model with imageUrl inside
+              console.log("ya pas post.imageUrl dans la database");
+              Post.updateOne(
+                { _id: req.params.id },
+                { ...postObject, _id: req.params.id }
+              )
+                .then(() => res.status(200).json({ message: "Post modifié!" }))
+                .catch((error) => res.status(401).json({ error }));
+            } else {
+              // post.imageUrl exist in database
+              // delete the path of the image
+              const filename = post.imageUrl.split("/images/")[1];
+              fs.unlink(`images/${filename}`, () => {
+                Post.updateOne(
+                  { _id: req.params.id },
+                  { ...postObject, _id: req.params.id }
+                )
+                  .then(() =>
+                    res.status(200).json({ message: "Post modifié!" })
+                  )
+                  .catch((error) => res.status(401).json({ error }));
+              });
+            }
+          }
+        }
       }
     })
     .catch((error) => {
@@ -102,15 +199,25 @@ exports.deletePost = (req, res, next) => {
       if (post.userId != req.auth.userId) {
         res.status(401).json({ message: "Not authorized" });
       } else {
-        // delete the path of the image
-        const filename = post.imageUrl.split("/images/")[1];
-        fs.unlink(`images/${filename}`, () => {
+        // if there is an image in the post :
+        if (post.imageUrl) {
+          // delete the path of the image
+          const filename = post.imageUrl.split("/images/")[1];
+          fs.unlink(`images/${filename}`, () => {
+            Post.deleteOne({ _id: req.params.id })
+              .then(() => {
+                res.status(200).json({ message: "Post deleted !" });
+              })
+              .catch((error) => res.status(401).json({ error }));
+          });
+        } else {
+          // if there is NOT image in the post
           Post.deleteOne({ _id: req.params.id })
             .then(() => {
               res.status(200).json({ message: "Post deleted !" });
             })
             .catch((error) => res.status(401).json({ error }));
-        });
+        }
       }
     })
     .catch((error) => {
@@ -126,6 +233,7 @@ exports.deletePost = (req, res, next) => {
  */
 exports.getAllPosts = (req, res, next) => {
   Post.find()
+    .sort({ _id: "desc" }) // ordre descendant
     .then((posts) => {
       res.status(200).json(posts);
     })
@@ -152,25 +260,12 @@ exports.likePost = (req, res, next) => {
       }
       // if like == -1 it means user disliked, add dislikes +1 and add usser inside [usersDisliked]
       if (req.body.like == -1) {
-        post.dislikes++;
-        post.usersDisliked.push(req.body.userId);
-      }
-      // if like == 0 it means user canceled a liked or a disliked
-      if (req.body.like == 0) {
-        // find user's index in the usersLiked array
         let userFound = post.usersLiked.findIndex(
           (userId) => userId == req.body.userId
         );
         if (userFound != -1) {
           post.usersLiked.splice(userFound, 1); // delete the user from the usersLiked array
           post.likes--; // remove 1 from the likes
-        } else {
-          // find user's index in the usersDisliked array
-          let userFound = post.usersDisliked.findIndex(
-            (userId) => userId == req.body.userId
-          );
-          post.usersDisliked.splice(userFound, 1); // delete the user from the usersDisliked array
-          post.dislikes--; // remove 1 from the dislikes
         }
       }
       post.save();

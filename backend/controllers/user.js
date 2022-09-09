@@ -44,6 +44,8 @@ exports.login = (req, res, next) => {
           }
           // else return user's model, using jwt to produce a token for the password
           res.status(200).json({
+            firstName: user.firstName,
+            lastName: user.lastName,
             userId: user._id,
             token: jwt.sign({ userId: user._id }, "RANDOM_TOKEN_SECRET", {
               expiresIn: "24h",
@@ -51,6 +53,18 @@ exports.login = (req, res, next) => {
           });
         })
         .catch((error) => res.status(500).json({ error }));
+    })
+    .catch((error) => res.status(500).json({ error }));
+};
+
+exports.getUserById = (req, res, next) => {
+  User.findOne({ id: req.params.id }) // find the email enter by the user
+    .then((user) => {
+      // if user is different then the email find return 401
+      if (!user) {
+        return res.status(401).json({ message: "Utilisateur introuvable" });
+      }
+      return res.status(200).json({ user });
     })
     .catch((error) => res.status(500).json({ error }));
 };

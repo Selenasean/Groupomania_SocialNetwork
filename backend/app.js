@@ -37,7 +37,7 @@ app.use((req, res, next) => {
 app.use(express.json()); // Provides the body of the request
 
 app.use("/images", express.static(path.join(__dirname, "images"))); // stockage of the images
-app.use("/api/posts", postRoutes);
+app.use("/api/post", postRoutes);
 app.use("/api/auth", userRoutes);
 
 module.exports = app;
