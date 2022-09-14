@@ -45,50 +45,57 @@ export default{
         }
     },
     methods : {
-        // get only one post to display content's post to modify
+        /**
+         * @function getOnePost get only one post to display content's post to modify
+         */
         getOnePost(){
             const idPost = this.$route.params.id // get post's id by the url of the route
             this.axios.get(`/post/${idPost}`)
                 .then((res) => {
-                    console.log(res)
                     this.legendEdit = res.data.legend
                     if(!res.data.imageUrl){
-                    this.imageURLToPreviewEdit =''
-                    console.log(this.imageURLToPreviewEdit)
+                        this.imageURLToPreviewEdit =''
                     } else {
-                    this.imageURLToPreviewEdit = res.data.imageUrl
-                    console.log(this.imageURLToPreviewEdit)
+                        this.imageURLToPreviewEdit = res.data.imageUrl
                     }
                 })
                 .catch((error)=>{
                     console.log(error)
                 })
         },
-        // when click on btn custom-btn it clicks on the choice's input
+        /**
+         * @function chooseFile when click on btn custom-btn it clicks on the choice's input btn
+         */
         chooseFile(){
             this.$refs.inputValue.click()
         },
-
-        // get image to displayed on screen before publish
+        /**
+         * @function catchImg get image to displayed on screen before publish
+         * @param {*} event : event provides by the change listener on the choose img btn
+         */
         catchImg(event){
             const file = event.target.files[0]
-            this.imageEdit = file // stock in data image 
+            this.imageEdit = file // stock in data imageEdit 
             this.imageNameDisplay = file.name
             this.imageURLToPreviewEdit = URL.createObjectURL(file) // in URL to diplay
 
         },
-        // deselected img 
+        /**
+         * @function cancelSelectedImg deselected img 
+         */
         cancelSelectedImg(){
             this.imageURLToPreviewEdit = ''
             this.imageNameDisplay = 'Aucun fichier choisi'
             this.imageEdit = 'deleteImg'
-            console.log(this.imageEdit)
         },
+        /**
+         * @function modifyPost send PUT request to modify the post
+         */
         modifyPost(){
-            console.log(this.imageEdit)
             if(this.imageEdit != ''){
+
                 if(this.imageEdit == 'deleteImg'){
-                    console.log("l'image est supp par l'utilisateur")
+                // if image = deleteImg - means user wants to delete an image
                     
                     const idPost = this.$route.params.id // get post's id by the url of the route
 
@@ -107,20 +114,20 @@ export default{
                     formData.append('image', this.imageEdit) // using 'image' instead of 'imageUrl' so multer can find the file
                     formData.append('likes', 0)
                     formData.append('usersLiked', [])
+
                     // PUT request
                     this.axios.put(`/post/${idPost}`, formData)
-                    .then((res) => {
-                        console.log(res)
-                        this.$router.push({name: 'Home'})
-                    })
-                    .catch((error)=>{
-                        console.log(error)
-                    }) 
+                        .then((res) => {
+                            this.$router.push({name: 'Home'})
+                            return res
+                        })
+                        .catch((error)=>{
+                            console.log(error)
+                        }) 
+
                 }else{
-                    //this.imageEdit = something
-                    console.log(this.imageEdit)
-                    console.log('user change qlqch sur image')
-                    // if this.imageEdit = something
+                //this.imageEdit = something
+
                     const idPost = this.$route.params.id // get post's id by the url of the route
 
                     // get userId, user's first and last name from the localStorage
@@ -138,19 +145,20 @@ export default{
                     formData.append('image', this.imageEdit) // using 'image' instead of 'imageUrl' so multer can find the file
                     formData.append('likes', 0)
                     formData.append('usersLiked', [])
+
                     // PUT request
                     this.axios.put(`/post/${idPost}`, formData)
-                    .then((res) => {
-                        console.log(res)
-                        this.$router.push({name: 'Home'})
-                    })
-                    .catch((error)=>{
-                        console.log(error)
-                    }) 
+                        .then((res) => {
+                            this.$router.push({name: 'Home'})
+                            return res
+                        })
+                        .catch((error)=>{
+                            console.log(error)
+                        }) 
                 }     
-            }else {
-                // else user doesn't modify img so there is no image to send to the server, the user changes only text
-                console.log('user modifie que le texte')
+            } else {
+            // else user doesn't modify img so there is no image to send to the server, the user changes only text
+
                 const idPost = this.$route.params.id // get post's id by the url of the route
 
                 // get userId, user's first and last name from the localStorage
@@ -167,19 +175,21 @@ export default{
                 formData.append('legend', this.legendEdit)               
                 formData.append('likes', 0)
                 formData.append('usersLiked', [])
+
                 // PUT request
                 this.axios.put(`/post/${idPost}`, formData)
-                .then((res) => {
-                    console.log(res) 
-                    console.log('retour home page -- msg modif doit apparaitre')                
-                    this.$router.push( {name :'Home', params : {success: true }})
-                    
-                })
-                .catch((error)=>{
-                    console.log(error)
-                })   
+                    .then((res) => {          
+                        this.$router.push( {name :'Home', params : {success: true }})
+                        return res
+                    })
+                    .catch((error)=>{
+                        console.log(error)
+                    })   
             }
         },
+        /**
+         * @function backToHome to swicth from EditPost view to Home view
+         */
         backToHome(){
             this.$router.push({name: 'Home'})
         },

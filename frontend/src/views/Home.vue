@@ -1,6 +1,9 @@
 <template>
 <div class="home">
-    <div class="btn-choice">
+    <div class="user">
+        <p class="user__p">{{ firstNameUserConnected }} {{ lastNameUserConnected }}</p>
+    </div>
+    <div class="btn-choice">       
         <div class="btn-choice__left">
             <button class="btn-choice__all btn-hover" title="Accueil" @click="switchMode('home')" :class="{'btn-focus' : mode == 'home'}">
                 <i class="fa-solid fa-house"></i>
@@ -10,7 +13,10 @@
             </button>
         </div>
         <div class="btn-choice__right">
-            <button class="btn-choice__logout btn-hover" @click="logout" title="Déconnexion">Se déconnecter</button>
+            <button class="btn-choice__logout btn-hover" @click="logout" title="Déconnexion">
+                <span class="btn-choice__logout__text">Se déconnecter</span>
+                <i class="fa-solid fa-right-from-bracket btn-choice__logout__icon"></i>
+            </button>
         </div>
     </div>
     <section class="create-card">
@@ -36,7 +42,7 @@
                     <i class="fa-solid fa-pencil"></i>
                 </span>
                 <span class="post-card__delete-btn" @click="deletePost(item._id)" v-if="isOwner(item.userId) || isAdmin" title="Supprimer">
-                    <i class="fa-solid fa-trash-can"></i>
+                    <i class="fa-solid fa-trash-can" ></i>
                 </span>
 
             </div>
@@ -44,8 +50,9 @@
                 <img class="post-card__img__photo" v-if="item.imageUrl" :src="item.imageUrl">
             </div>
             <div class="post-card__liked">
-                <i id="heartFull" class="fa-solid fa-heart post-card__liked__full" v-if="isLiked(item)" @click="dislike(item._id)"></i>
-                <i id="heartEmpty" class="fa-regular fa-heart post-card__liked__empty" v-else @click="like(item._id)"></i>
+                <i class="fa-solid fa-heart post-card__liked__full" v-if="isLiked(item)" @click="dislike(item._id)"></i>
+                <i class="fa-regular fa-heart post-card__liked__empty" v-else @click="like(item._id)"></i>
+                <span  v-if="item.likes >= 1" class="post-card__liked__number">{{ item.likes }} personne(s) aime(nt)</span>
             </div>
             <span class="post-card__text">{{ item.legend }}</span>
         </div>
@@ -69,23 +76,49 @@ export default {
             postCreated : false,
             modifiedPost : false,
             isAdmin : false,
+            firstNameUserConnected:'',
+            lastNameUserConnected :'',
         };
     },
     methods: {
+        /**
+         * @function displayUserConnected() display first and last nam of the user connected
+         */
+        displayUserConnected(){
+            const user = JSON.parse(localStorage.getItem('user'))
+            this.firstNameUserConnected = user.firstName
+            this.lastNameUserConnected = user.lastName
+        },
+        /**
+         * @function setHeadersRequest to set request's headers with acces token
+         */
+        setHeadersRequest(){
+            const user = localStorage.getItem("user");
+            if (user) {
+            const userDecoded = JSON.parse(user);
+            this.axios.defaults.headers.common["Authorization"] = "Bearer " + userDecoded.token;
+            }
+        },
+        /**
+         * @function getAllPost get all post in database to displayed them by using GET request
+         */
         getAllPost() {
             this.axios.get("/post")
                 .then((res) => {
-                if (res.data == '') {
-                    this.showEmptyPost = true;
-                }else{
-                    this.postContents = res.data
-                }
-
-            })
+                    if (res.data == '') {
+                        this.showEmptyPost = true;
+                    }else{
+                        this.postContents = res.data
+                    }
+                })
                 .catch((error) => {
                 console.log(error);
-            });
+                });
         },
+        /**
+         * @function switchMode switch from view home to CreatePost component and vice versa
+         * @param {*} params : the mode we clicked on
+         */
         switchMode(params){
             if(params == 'home'){
                 this.mode = 'home'
@@ -94,6 +127,9 @@ export default {
                 this.mode = 'create'
             }
         },
+        /**
+         * @function switchToHome swicth from CreatePost component to Home view and display a success msg
+         */
         switchToHome(){
             if(this.mode == 'create'){
                 this.mode = 'home'
@@ -101,9 +137,13 @@ export default {
             this.postCreated = true
             setTimeout(() => {
                 this.postCreated = false
-                this.$router.go()
-            }, 1500)
+                this.$router.go()// refresh the page
+            }, 1000)
         },
+        /**
+         * @function isLiked add user who liked the post to the array usersLiked
+         * @param {*} post : the post that is liked
+         */
         isLiked(post){
             let arrayLiked = post.usersLiked // all user who liked
             // get userId who likes the post
@@ -111,101 +151,127 @@ export default {
             let userIdWhoLikes = user.userId
             return arrayLiked.includes(userIdWhoLikes)
         },
-        like(idPost){// to do
-            console.log('like cliqué')
-
+        /**
+         * @function like like the post, send a POST request
+         * @param {*} idPost : the id of the post that is liked
+         */
+        like(idPost){
             // get userId who likes the post
             let user = JSON.parse(localStorage.getItem('user'))
             let userIdWhoLikes = user.userId
-            let firstNameWhiLikes = user.firstName
+            let firstNameWhoLikes = user.firstName
             let lastNameWhoLikes = user.lastName
             // POST LIKE request
             this.axios.post(`/post/${idPost}/like`, {
                 userId: userIdWhoLikes,
-                firstName : firstNameWhiLikes,
+                firstName : firstNameWhoLikes,
                 lastName : lastNameWhoLikes,
-                like : 1,
+                like : 1, // means it's liked
             })
                 .then((res) => {
-                    console.log(res) 
-                    this.$router.go()
+                    this.$router.go() // refresh the page
+                    return res
                 })
                 .catch((error)=>{
                     console.log(error)
                 })   
         },
+        /**
+         * @function dislike to unlike the post
+         * @param {*} idPost : the id of the post that is unliked
+         */
         dislike(idPost){
-            console.log("coeur rouge cliqué")
-           
             // get userId who likes the post
             let user = JSON.parse(localStorage.getItem('user'))
             let userIdWhoLikes = user.userId
-            let firstNameWhiLikes = user.firstName
+            let firstNameWhoLikes = user.firstName
             let lastNameWhoLikes = user.lastName
             // POST DISLIKE request
             this.axios.post(`/post/${idPost}/like`, {
                 userId: userIdWhoLikes,
-                firstName : firstNameWhiLikes,
+                firstName : firstNameWhoLikes,
                 lastName : lastNameWhoLikes,
-                like : -1 ,
+                like : -1 , // means it's unliked
             })
                 .then((res) => {
-                    console.log(res) 
-                    this.$router.go()
+                    this.$router.go()// refresh the page
+                    return res
                 })
                 .catch((error)=>{
                     console.log(error)
                 })   
         },
+        /**
+         * @function switchToEdit change from home view to EditPost view by clicking on the button
+         * @param {*} id : the post's id that we want to edit 
+         */
         swicthToEdit(id) {
             this.$router.push({ name: 'EditPost', params: { id: id } })
         },
+        /**
+         * @function isOwner specifies that the user connected is the same user who create the post
+         * @param {*} postUserId : the id of the post that interests us
+         */
         isOwner(postUserId){
             let user = JSON.parse(localStorage.getItem('user'))
             let userConnected = user.userId
             return userConnected == postUserId
         },
+        /**
+         * @function getUser get connected user from the database to determine if he's Admin or not
+         */
         getUser(){
             let user = JSON.parse(localStorage.getItem('user'))
             let userConnected = user.userId
+            // GET request with the id of the connected user
             this.axios.get(`/auth/${userConnected}`)
             .then((res)=> {
-                console.log(res)
                 this.isAdmin = res.data.isAdmin
             })
             .catch((err)=> {
                 console.log(err)
             })
         },
+        /**
+         * @function deletePost delete post
+         * @param {*} idPost : the id of the post we want to delete
+         */
         deletePost(idPost){
-            console.log(idPost)
             // DELETE request
             this.axios.delete(`/post/${idPost}`)
                 .then((res) => {
-                    console.log(res)
-                    location.reload()                  
+                    this.$router.go()// refresh the page
+                    return res                 
                 })
                 .catch((error) => {
                     console.log(error);
                 });
         },
+        /**
+         * @function showMsgPostModified show a succes msg after post's modification
+         */
         showMsgPostModified(){
-            console.log('post modifié doit apparaitre')
             this.modifiedPost = true;
             setTimeout(()=> {
                 this.modifiedPost = false
-            },1500)
+            },1000)
         },
+        /**
+         * @function logout log out the user by errasing the localStorage which contains token
+         */
         logout(){
-            localStorage.clear()
+            localStorage.removeItem('user')
             this.$router.push({name : 'Authentification'})
-        }
+        },
+
         
     },
     mounted() {
+        this.setHeadersRequest()
+        this.displayUserConnected()
         this.getAllPost();
-        console.log(this.$route)
         if(this.$route.params.success){
+            //if params success in the route is true show msg
             this.showMsgPostModified()
         }
         this.getUser()
@@ -215,20 +281,59 @@ export default {
 
 <style lang="scss">
 
+.user{
+    display: flex;
+    justify-content: end;
+    margin :0;
+    margin-right :25px;
+    padding:0;
+    @media screen and (max-width: 360px){
+        margin-right: 10px;
+        }
+    &__p{
+        max-width:fit-content;
+        margin: 0;
+        margin-bottom: 5px;
+       font-size: 16px;
+       font-weight: 700;
+       color :#4E5166
+
+    }
+}
 .btn-choice{
+
     position :sticky;
     top:10px;
     display:flex;
     flex-direction: row;
     flex-wrap :wrap;
     justify-content: space-between;
-    margin-top:15px;
+    height: 40px;
+    @media screen and (max-width: 550px){
+        display:flex;
+        align-items: center;
+        flex-wrap: nowrap;
+        background-color: white;
+        top:-0.5px;
+    }
     &__right {
         margin-right : 25px;
+        @media screen and (max-width: 550px){
+        margin-right: 20px;
+        }
+        @media screen and (max-width: 360px){
+        margin-right: 10px;
+        }
     }
     &__left{
         margin-left:25px;
         width:60% ;
+        @media screen and (max-width: 550px){
+        margin-left: 20px;
+        }
+        @media screen and (max-width: 360px){
+        margin-left: 10px;
+        }
     }
     &__all {
         margin-right :15px;
@@ -250,6 +355,13 @@ export default {
         height : 35px;
     }
     &__logout {
+        &__icon{
+            display:none;
+            @media screen and (max-width:550px){
+                display:contents;
+                font-size:15px
+            }
+        }
         font-size: 15px;
         font-weight:700;
         background-color: #FFD7D7;
@@ -257,7 +369,15 @@ export default {
         border-radius: 10px;
         width : 150px;
         height : 35px;
-
+        @media screen and (max-width: 550px){
+            width : 50px;
+            font-size:12px;
+        }
+        &__text{
+            @media screen and (max-width:550px) {
+                display:none;
+            }
+        }
     }
 }
 .btn-hover:hover {
@@ -271,13 +391,16 @@ export default {
 .create-card{
     display:flex;
     justify-content: center;
+    @media screen and (max-width:500px){
+        width:90%;
+    }
 }
 .card-add__msg{
     margin-top : 40px;
     font-size: 20px;;
 }
 .card-display{
-    margin-top : 50px;
+    margin-top : 10px;
     padding : 25px;
     display:flex;
     flex-direction: column;
@@ -292,6 +415,9 @@ export default {
     flex-direction: column;
     align-items: flex-start;
     margin-bottom: 25px;
+    @media screen and (max-width:360px){
+        width:270px;
+    }
     &__top-banner{
         margin-top :16px;
         margin-left : 10px;
@@ -299,12 +425,18 @@ export default {
         flex-direction: row;
         justify-content: space-between;
         max-width: 330px;
+        @media screen and (max-width:360px){
+        max-width:260px;
+        }
     }
     &__userName{
         margin :0;
         font-size:16px;
         font-weight:700;
         width :280px;
+        @media screen and (max-width:360px){
+        width:200px;
+        }
     }
     &__edit-btn{
         font-size:16px;
@@ -326,34 +458,40 @@ export default {
         margin-top: 10px;
         max-height: 300px;
         max-width:350px;
+        @media screen and (max-width:360px){
+            max-width: 270px;
+        }
         &__photo{
             width :350px;
             height :300px;
             object-fit :cover;
+            @media screen and (max-width:360px){
+                width:270px;
+                object-fit:cover;
+            }
         }
     }
     &__liked{
         margin-left:10px;
         margin-top:5px;
-        position :relative;
         &__full{
             color: red;
-            position : relative;
             &:hover{
                 cursor :pointer;
             }
-
         }
         &__empty{
-            position :absolute;
-            right : 0;
-            top: 2px;
-            z-index:1;
             &:hover{
                 color :grey;
                 cursor :pointer;
             }
  
+        }
+        &__number{
+            width: 260px;
+            margin-left :5px;
+            font-size : 12px;
+            color:#4E5166;
         }
     }
     &__text{
@@ -364,6 +502,9 @@ export default {
         width: 320px;
         max-height: 200px;
         margin: 5px 10px 20px;
+        @media screen and (max-width:360px){
+            width:250px;
+        }
     }
 }
 </style>

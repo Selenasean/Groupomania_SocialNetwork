@@ -1,8 +1,7 @@
-<template>
-    
+<template>    
     <div class="card-add">
         <form @submit.prevent="createPost()" enctype="multipart/form-data">
-            <div class="form-group">
+            <div class="form-group form-group__img">
                 <div id="choose-file">
                     <input ref="inputValue" @change="catchImg" type="file" accept="image/*" hidden="hidden" >
                     <button type="button" id="custom-btn" @click="chooseFile()">
@@ -40,7 +39,9 @@ export default{
         }
     },
     computed : {
-        // to check if input are empty or not to validate btn create-post
+        /**
+         * @function filledField check if input are empty or not to validate btn create-post
+         */
         filledField(){
             if(this.legend == ''){
                 return false
@@ -50,27 +51,35 @@ export default{
         }
     },
     methods : {
-        //make the btn clicked, click on choose file's input
+        /**
+         * @function chooseFile make that the btn clicked = clicked on choose file's input, to select a file
+         */
         chooseFile(){
             this.$refs.inputValue.click()
         },
-        // get image to displayed on screen before publish
+        /**
+         * @function catchImg get img to display on screen before publish
+         * @param {*} event : the event listened after choosing the file
+         */
         catchImg(event){
-            const file = event.target.files[0]
+            const file = event.target.files[0] //the exact file containing the img
             this.image = file // stock in data image 
             this.imageNameDisplay = file.name
             this.imageURLToPreview = URL.createObjectURL(file) // in URL to diplay
-
         },
-        createPost(){               
+        /**
+         * @function createPost create the post by sending en POST request
+         */
+        createPost(){       
+            // if this.image is not empty- contains something        
             if(this.image != ''){
-                console.log(this.image)
-                // get userId from the localStorage
+                // get userId, first and last name from the localStorage
                 let getUserInfos = JSON.parse(localStorage.getItem("user"))
                 const userIdSend = getUserInfos.userId 
                 const userFirstName = getUserInfos.firstName
                 const userLastName = getUserInfos.lastName
-                // create a formData object to send 
+
+                // create a formData object with all the info inside, to send 
                 let formData = new FormData();
                 formData.append('userId', userIdSend)
                 formData.append('firstName', userFirstName)
@@ -79,24 +88,29 @@ export default{
                 formData.append('image', this.image) // using 'image' instead of 'imageUrl' so multer can find the file
                 formData.append('likes', 0)
                 formData.append('usersLiked', [])
+
                 // POST request
                 this.axios.post('/post/',formData)
-                .then((res) => {
-                    this.$emit('postCreated')
-                    return res
-                })
-                .catch((err)=>{
-                    console.log(err)
-                })                    
+                    .then((res) => {
+                        this.$emit('postCreated')// event postCreated to listened in home view
+                        return res
+                    })
+                    .catch((err)=>{
+                        console.log(err)
+                    })                    
             }
+            //if this.image is empty -- the user create a post with only text in it
             if(this.image == ''){
-                this.image == null
-                // get userId from the localStorage
+            
+                this.image == null // make this.image = null
+
+                // get userId, first and last name from the localStorage
                 let getUserInfos = JSON.parse(localStorage.getItem("user"))
                 const userIdSend = getUserInfos.userId 
                 const userFirstName = getUserInfos.firstName
                 const userLastName = getUserInfos.lastName
-                // create a formData object to send 
+
+                // create a formData object which contains all the infos to send 
                 let formData = new FormData();
                 formData.append('userId', userIdSend)
                 formData.append('firstName', userFirstName)
@@ -105,17 +119,17 @@ export default{
                 formData.append('image', this.image) // using 'image' instead of 'imageUrl' so multer can find the file
                 formData.append('likes', 0)
                 formData.append('usersLiked', [])
+
                 // request POST
                 this.axios.post('/post/',formData)
-                .then((res) => {
-                    this.postCreated == true
-                    this.$emit('postCreated')
-                    return res
-
-                })
-                .catch((err)=>{
-                    console.log(err)
-                })  
+                    .then((res) => {                       
+                        this.postCreated == true
+                        this.$emit('postCreated') // event postCreated to listened in home view
+                        return res
+                    })
+                    .catch((err)=>{
+                        console.log(err)
+                    })  
             }
         }
     }
@@ -128,6 +142,9 @@ export default{
     display:flex;
     flex-direction: column;
     width :60%;
+    @media screen and (max-width :500px) {
+        width : 90%
+    }
     &__msgcreated {
         margin-top: 150px;
         margin-bottom:150px;
@@ -141,6 +158,11 @@ export default{
     align-items: baseline;
     margin-bottom: 40px;
     justify-content: flex-start;
+    &__img{
+        @media screen and (max-width:500px){
+            flex-direction: column;
+        }
+    }
 }
 #choose-file{
     display:flex;

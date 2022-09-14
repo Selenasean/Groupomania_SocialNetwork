@@ -32,7 +32,7 @@ export default {
     }
     },
     props : {
-       email:  { type: String, default :''}
+       email:  { type: String, default :''} // email collect from singup
     },
       computed : {
         /**
@@ -47,7 +47,9 @@ export default {
         },
     },
     methods : {
-        //check if email's input is correctfully completed
+        /**
+         * @function checkEmailLogin to check if email's input is correctfully completed
+         */
         checkEmailLogin(){
             const emailRegExp = new RegExp("[a-z0-9]+@[a-z]+\\.[a-z]{2,3}");
             let check = emailRegExp.test(this.internalEmail);
@@ -59,7 +61,9 @@ export default {
                 return true
             }
         },
-        //check if password's input is correctfully completed
+        /**
+         * @function checkPasswordLogin to check if password's input is correctfully completed
+        */
         checkPasswordLogin(){
             const passwordRegExp = new RegExp("[a-z0-9]+@[a-z]+\\.[a-z]{2,3}");
             let check = passwordRegExp.test(this.password);
@@ -71,33 +75,39 @@ export default {
                 return true
             }
         },
+        /**
+         * @function login send the POST request to log the user, and stock informations (as the token) in localStorage
+         */
         login(){
             if(this.checkEmailLogin || this.checkPasswordLogin){
-                this.axios.post('http://localhost:3000/api/auth/login', {
+            //if inputs are correct
+
+                this.axios.post('/auth/login', {
                     email : this.internalEmail,
                     password : this.password
                 })
-                .then((res) => {
-                    localStorage.setItem("user", JSON.stringify({
-                        token :res.data.token, 
-                        userId : res.data.userId,
-                        firstName : res.data.firstName,
-                        lastName : res.data.lastName
-                    })) 
-                    this.$router.push({name: 'Home'})
-                })
-                .catch((error)=>{
-                    this.showError = true;
-                    this.password='';
-                    return error
-                })
+                    .then((res) => {
+                        // sotck infos in localStorage
+                        localStorage.setItem("user", JSON.stringify({
+                            token :res.data.token, 
+                            userId : res.data.userId,
+                            firstName : res.data.firstName,
+                            lastName : res.data.lastName
+                        })) 
+                        this.$router.push({name: 'Home'}) // go to the home page
+                    })
+                    .catch((error)=>{
+                        this.showError = true;
+                        this.password='';
+                        console.log(error)
+                    })
             }else{
                 console.log('error form')
             }
         }
     },
     mounted(){
-        this.internalEmail = this.email
+        this.internalEmail = this.email // the email placeholder of login = the email send by signup component
     }
 }
 </script>
@@ -112,11 +122,17 @@ export default {
     max-height: 100%;
     border-radius: 20px;
     text-align: center;
+    @media screen and (max-width: 500px){
+       width :90%;
+    }
     &__title{
        display: flex;
        justify-content: center;
        margin-bottom : 15px;
-       color : #FD2D01
+       color : #FD2D01;
+       @media screen and (max-width: 500px){
+        font-size : 22px;
+       }
     }
 }
 .form-row{

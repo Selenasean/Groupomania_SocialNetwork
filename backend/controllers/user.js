@@ -3,6 +3,12 @@ const jwt = require("jsonwebtoken");
 
 const User = require("../models/User");
 
+/**
+ * @function signup sign up the user
+ * @param {*} req request sent by front
+ * @param {*} res response
+ * @param {*} next pass the execution to the next
+ */
 exports.signup = (req, res, next) => {
   // using bcrypt to hash the password
   bcrypt
@@ -23,10 +29,16 @@ exports.signup = (req, res, next) => {
     .catch((error) => res.status(500).json({ error }));
 };
 
+/**
+ * @function login to log the user
+ * @param {*} req request sent by front
+ * @param {*} res response
+ * @param {*} next pass the execution to the next
+ */
 exports.login = (req, res, next) => {
   User.findOne({ email: req.body.email }) // find the email enter by the user
     .then((user) => {
-      // if user is different then the email find return 401
+      // if user is different than the email find return 401
       if (!user) {
         return res
           .status(401)
@@ -57,14 +69,20 @@ exports.login = (req, res, next) => {
     .catch((error) => res.status(500).json({ error }));
 };
 
+/**
+ * @function getUserById to get a user from the data base by his Id
+ * @param {*} req request send by the front
+ * @param {*} res response
+ * @param {*} next pass the execution to the next
+ */
 exports.getUserById = (req, res, next) => {
-  User.findOne({ id: req.params.id }) // find the email enter by the user
+  User.findOne({ _id: req.params.id }) // find the user with the id get in req.params (sent by the front)
     .then((user) => {
-      // if user is different then the email find return 401
+      // if there is no user match
       if (!user) {
         return res.status(401).json({ message: "Utilisateur introuvable" });
       }
-      return res.status(200).json({ user });
+      return res.status(200).json(user); // send the user to the front
     })
     .catch((error) => res.status(500).json({ error }));
 };

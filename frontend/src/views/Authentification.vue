@@ -32,6 +32,10 @@ export default {
         }
     },
     methods : {
+        /**
+         * @function show to show the right component following the button clicked
+         * @param {*} params which is the state/ component we want
+         */
         show(params){
             if(params == 'login'){
                 this.mode = 'login'
@@ -39,6 +43,10 @@ export default {
                 this.mode = 'signup'
             }
         },
+        /**
+         * @function switchTab to switch from signup to login component with the email adress of the user
+         * @param {*} email : the email send by the signup Component
+         */
         switchTab(email){
             if(this.mode =='signup'){
                 this.mode = 'login'
@@ -46,6 +54,9 @@ export default {
             }
             
         }
+    },
+    mounted(){
+        localStorage.clear()
     }
 }
 </script>
@@ -59,6 +70,12 @@ export default {
         justify-content: center;
         margin-bottom: 20px;
         font-size: 20px;
+        @media screen and (max-width: 500px) {
+            text-align: center;
+            flex-wrap: wrap;
+            font-size : 16px;
+            
+        }
     }
 }
 .button-auth{
@@ -76,6 +93,9 @@ export default {
         height: 40px;
         font-weight : 700;
         font-size: 15px;
+        @media screen and (max-width: 500px){
+            width: 30%
+        }
         &:hover {
             cursor: pointer;
             transform : scale(1.10);
@@ -91,6 +111,7 @@ export default {
     justify-content: center;
     align-items: center;
     margin-bottom : 40px;
+
 }
 
 </style>

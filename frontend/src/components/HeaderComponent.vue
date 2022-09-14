@@ -18,7 +18,7 @@ export default {
     display: flex;
     justify-content: center;
     border-bottom : 0.5px solid #FD2D01;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
     &__img {
         max-height: 100px;
         width : 400px;

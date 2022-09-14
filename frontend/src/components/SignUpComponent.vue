@@ -5,12 +5,12 @@
             <div class="name">
                 <label class="name__label-name" for="firstName">Prénom :</label>
                 <input @change="checkFirstName()" v-model="firstName" name="firstName" class="form-row__input-name" type="text" placeholder="Prénom" required/>
-                <p class="msgError msgError__name" v-if="showErrorFistname == true">Saisie incorrecte</p>
+                <p class="msgError__name" v-if="showErrorFistname == true">Saisie incorrecte</p>
             </div>
             <div class="name">
                 <label class="name__label-name" for="lastName">Nom :</label>
                 <input @change="checkLastName()" v-model="lastName" name="lastName" class="form-row__input-name" type="text" placeholder="Nom" required/>
-                <p class="msgError msgError__name" v-if="showErrorLastName == true">Saisie incorrecte</p>
+                <p class="msgError__name" v-if="showErrorLastName == true">Saisie incorrecte</p>
             </div>
         </div>
         <div class="form-row">
@@ -62,7 +62,9 @@ export default {
      
     },
     methods : {
-      //check if first name's input is correctfully completed
+        /**
+        * @function checkFirstName to check if first name's input is correctfully completed
+        */
         checkFirstName(){
             const nameRegExp = new RegExp("^[a-zA-ZÀ-ÿ ,.'-]+$");
             let check = nameRegExp.test(this.firstName);
@@ -74,7 +76,9 @@ export default {
             return true
         }
         },
-        //check if last name's input is correctfully completed
+        /**
+        * @function checkLastName to check if last name's input is correctfully completed
+        */
         checkLastName(){
         const nameRegExp = new RegExp("^[a-zA-ZÀ-ÿ ,.'-]+$");
         let check = nameRegExp.test(this.lastName);
@@ -86,7 +90,9 @@ export default {
             return true
         }
         },
-        //check if email's input is correctfully completed
+        /**
+        * @function checkEmail to check if email's input is correctfully completed
+        */       
         checkEmail(){
         const nameRegExp = new RegExp("[a-z0-9]+@[a-z]+\\.[a-z]{2,3}");
         let check = nameRegExp.test(this.email);
@@ -98,7 +104,9 @@ export default {
             return true
         }
         },
-        //check if password's input is correctfully completed
+        /**
+        * @function checkPassword to check if password's input is correctfully completed
+        */  
         checkPassword(){
         const nameRegExp = new RegExp("^[a-zA-ZÀ-ÿ ,.'-]+$");
         let check = nameRegExp.test(this.password);
@@ -110,27 +118,30 @@ export default {
             return true
         }
         },
-        // send a POST request to save user in database
+        /**
+         * @function createAccount to send a POST request to save user in database
+         */
         createAccount(){
+            //if all inputs are correct, send the request
             if(this.checkEmail || this.checkPassword || this.checkFirstName || this.checkLastName){
                 this.axios.post('/auth/signup', {
-                firstName : this.firstName,
-                lastName : this.lastName,
-                email : this.email,
-                password : this.password,
+                    firstName : this.firstName,
+                    lastName : this.lastName,
+                    email : this.email,
+                    password : this.password,
                 })
-                .then((res) => {
-                    this.$emit('signup', this.email)
-                    console.log(res)
-                })
-                .catch((error) => {
-                    console.log(error);
-                    this.firstName="";
-                    this.lastName="";
-                    this.email= "";
-                    this.password="";
-                    this.showErrorCreateAccount = true;
-                });
+                    .then((res) => {
+                        this.$emit('signup', this.email) // send this.email in listening function signup on authentification view
+                        return res
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                        this.firstName="";
+                        this.lastName="";
+                        this.email= "";
+                        this.password="";
+                        this.showErrorCreateAccount = true;
+                    });
             }else{
                 console.log("error form")
             }
@@ -150,10 +161,16 @@ export default {
     width : 50%;
     max-height: 100%;
     border-radius: 20px;
+    @media screen and (max-width: 500px){
+       width :90%;
+    }
     &__title{
        display: flex;
        justify-content: center;
        margin-bottom : 20px;
+       @media screen and (max-width: 500px){
+        font-size : 22px;
+       }
     }
 }
 .form-row{
@@ -240,6 +257,10 @@ input {
     align-self: start;
     margin-left: 5%;
     &__name {
+        margin: 0;
+        font-size : 12px;
+        color:red;
+        align-self: start;
         margin-left:10%
     }
     &__btn{
