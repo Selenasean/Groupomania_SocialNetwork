@@ -1,7 +1,9 @@
 <template>
 <div class="home">
     <div class="user">
-        <p class="user__p">{{ firstNameUserConnected }} {{ lastNameUserConnected }}</p>
+        <p class="user__p"> 
+            <i class="fa-solid fa-circle-user user__icon"></i>
+            {{ firstNameUserConnected }} {{ lastNameUserConnected }}</p>
     </div>
     <div class="btn-choice">       
         <div class="btn-choice__left">
@@ -52,7 +54,7 @@
             <div class="post-card__liked">
                 <i class="fa-solid fa-heart post-card__liked__full" v-if="isLiked(item)" @click="dislike(item._id)"></i>
                 <i class="fa-regular fa-heart post-card__liked__empty" v-else @click="like(item._id)"></i>
-                <span  v-if="item.likes >= 1" class="post-card__liked__number">{{ item.likes }} personne(s) aime(nt)</span>
+                <span  v-if="item.likes >= 1" class="post-card__liked__number">{{ item.likes }}</span>
             </div>
             <span class="post-card__text">{{ item.legend }}</span>
         </div>
@@ -169,7 +171,7 @@ export default {
                 like : 1, // means it's liked
             })
                 .then((res) => {
-                    this.$router.go() // refresh the page
+                    this.$router.go()// refresh the page
                     return res
                 })
                 .catch((error)=>{
@@ -285,7 +287,7 @@ export default {
     display: flex;
     justify-content: end;
     margin :0;
-    margin-right :25px;
+    margin-right :30px;
     padding:0;
     @media screen and (max-width: 360px){
         margin-right: 10px;
@@ -297,7 +299,10 @@ export default {
        font-size: 16px;
        font-weight: 700;
        color :#4E5166
-
+    }
+    &__icon{
+        font-size : 20px;
+        margin-right:5px;
     }
 }
 .btn-choice{
@@ -474,6 +479,8 @@ export default {
     &__liked{
         margin-left:10px;
         margin-top:5px;
+        display:flex;
+        align-items: stretch;
         &__full{
             color: red;
             &:hover{
