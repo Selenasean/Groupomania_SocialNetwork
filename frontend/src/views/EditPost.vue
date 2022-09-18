@@ -118,7 +118,7 @@ export default{
                     // PUT request
                     this.axios.put(`/post/${idPost}`, formData)
                         .then((res) => {
-                            this.$router.push({name: 'Home'})
+                            this.$router.push( {name :'Home', params : {success: true }})
                             return res
                         })
                         .catch((error)=>{
@@ -149,7 +149,7 @@ export default{
                     // PUT request
                     this.axios.put(`/post/${idPost}`, formData)
                         .then((res) => {
-                            this.$router.push({name: 'Home'})
+                            this.$router.push( {name :'Home', params : {success: true }})
                             return res
                         })
                         .catch((error)=>{

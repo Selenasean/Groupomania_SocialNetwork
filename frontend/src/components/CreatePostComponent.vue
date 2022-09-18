@@ -11,7 +11,7 @@
                     <span id="custom-text">{{ imageNameDisplay }}</span>
                 </div>
                 <div id="img">    
-                    <img id="img-display" :src="imageURLToPreview">
+                    <img id="img-display" :src="imageURLToPreview" :alt="imageURLToPreview">
                 </div>
             </div>
             <div class="form-group">
@@ -222,7 +222,6 @@ input{
 }
 #custom-text{
     font-size:13px;
-    color: grey;
     margin-top : 8px;
     padding-left : 8px;
 }

@@ -49,7 +49,7 @@
 
             </div>
             <div class="post-card__img">
-                <img class="post-card__img__photo" v-if="item.imageUrl" :src="item.imageUrl">
+                <img class="post-card__img__photo" v-if="item.imageUrl" :src="item.imageUrl" :alt="item.imageUrl">
             </div>
             <div class="post-card__liked">
                 <i class="fa-solid fa-heart post-card__liked__full" v-if="isLiked(item)" @click="dislike(item._id)"></i>
@@ -481,6 +481,7 @@ export default {
         margin-top:5px;
         display:flex;
         align-items: stretch;
+        font-size : 16px;
         &__full{
             color: red;
             &:hover{
@@ -496,7 +497,7 @@ export default {
         }
         &__number{
             width: 260px;
-            margin-left :5px;
+            margin-left :3px;
             font-size : 12px;
             color:#4E5166;
         }
